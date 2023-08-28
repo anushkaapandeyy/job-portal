@@ -1,28 +1,36 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
+import validator from "validator";
 //schmea
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Name is required']
     },
+    lastName: {
+        type: String,
+    },
     email: {
         type: String,
         required: [true, "EMail needed"],
-        unique: true
+        unique: true,
+        validate: validator.isEmail,
     },
     password: {
         type: String,
-        required: [true, "password needed"]
+        required: [true, "password needed"],
+        minlength: [6, "password length should be > 6"],
+        select: true,
     },
     location: {
         type: String,
-        default: "india"
-    }
+        default: "india",
+    },
 }, { timestamps: true });
 //middleware
 userSchema.pre('save', async function () {
+    if (!this.isModified) return
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 });
